@@ -3,6 +3,8 @@
   const articleGrid = document.querySelector("#articleGrid");
   const tabs = document.querySelector("#categoryTabs");
   const searchInput = document.querySelector("#searchInput");
+  const heroSearch = document.querySelector("#heroSearch");
+  const heroSearchInput = document.querySelector("#heroSearchInput");
   const roleGrid = document.querySelector("#roleGrid");
   const themeToggle = document.querySelector("#themeToggle");
   let currentCategory = "全部";
@@ -81,6 +83,15 @@
   });
 
   searchInput.addEventListener("input", renderArticles);
+
+  heroSearch.addEventListener("submit", (event) => {
+    event.preventDefault();
+    searchInput.value = heroSearchInput.value;
+    currentCategory = "全部";
+    renderTabs();
+    renderArticles();
+    document.querySelector("#content").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 
   themeToggle.addEventListener("click", () => {
     document.documentElement.classList.toggle("dark");

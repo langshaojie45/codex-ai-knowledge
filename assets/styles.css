@@ -208,6 +208,41 @@ h3 {
   font-weight: 700;
 }
 
+.hero-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(620px, 100%);
+  margin-top: 24px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface), transparent 4%);
+  box-shadow: 0 12px 34px rgba(31, 48, 43, 0.08);
+}
+
+.hero-search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 0 10px;
+  outline: none;
+}
+
+.hero-search button {
+  min-width: 78px;
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent-2);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
 .primary-action {
   background: var(--accent);
   color: #fff;
@@ -812,8 +847,18 @@ code {
 
   .metric-row span,
   .primary-action,
-  .secondary-action {
+  .secondary-action,
+  .hero-search {
     min-width: 0;
+  }
+
+  .hero-search {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hero-search button {
+    width: 100%;
   }
 
   .metric-row {
