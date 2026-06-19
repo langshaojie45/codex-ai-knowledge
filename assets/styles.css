@@ -378,13 +378,43 @@ code {
 
 .quick-panel,
 .architecture,
-.content-section {
+.content-section,
+.glossary-section {
   margin: 0 clamp(20px, 5vw, 76px) 32px;
   padding: clamp(24px, 4vw, 42px);
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
   box-shadow: var(--shadow);
+}
+
+.glossary-section {
+  box-shadow: none;
+}
+
+.glossary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.glossary-grid article {
+  min-height: 152px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.glossary-grid strong {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 1.08rem;
+}
+
+.glossary-grid span {
+  color: var(--muted);
+  line-height: 1.65;
 }
 
 .quick-panel {
@@ -402,12 +432,99 @@ code {
 
 .check-grid div {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
   gap: 10px;
   padding: 14px;
   border-radius: 8px;
   background: var(--surface-2);
   color: var(--muted);
+}
+
+.check-grid strong {
+  color: var(--text);
+}
+
+.check-grid span {
+  line-height: 1.55;
+}
+
+.starter-section {
+  margin: 0 clamp(20px, 5vw, 76px) 32px;
+  padding: clamp(24px, 4vw, 42px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.choice-card {
+  display: flex;
+  min-height: 230px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.choice-card.recommended {
+  border-color: color-mix(in srgb, var(--accent), var(--line) 35%);
+  background: color-mix(in srgb, var(--accent-soft), var(--surface) 42%);
+}
+
+.choice-card p {
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.choice-card a {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.beginner-flow {
+  display: grid;
+  gap: 14px;
+}
+
+.flow-step {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.flow-step > span {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 900;
+}
+
+.flow-step p {
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.command-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .layout {
@@ -756,6 +873,7 @@ code {
 
   .hero,
   .quick-panel,
+  .choice-grid,
   .architecture,
   .layout {
     grid-template-columns: 1fr;
@@ -766,7 +884,8 @@ code {
   }
 
   .card-grid,
-  .role-grid {
+  .role-grid,
+  .glossary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -878,9 +997,20 @@ code {
 
   .quick-panel,
   .architecture,
-  .content-section {
+  .content-section,
+  .starter-section,
+  .glossary-section {
     margin-left: 14px;
     margin-right: 14px;
+  }
+
+  .glossary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-step,
+  .command-pair {
+    grid-template-columns: 1fr;
   }
 
   .layout {

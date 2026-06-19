@@ -20,6 +20,7 @@
         </span>
       </a>
       <nav class="nav" aria-label="主导航">
+        <a href="#starter">新手安装</a>
         <a href="#guide">教程</a>
         <a href="#content">内容库</a>
         <a href="#users">用户</a>
@@ -33,14 +34,14 @@
     <main id="top">
       <section class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">2026-06-18 更新 · 面向国内开发者</p>
+          <p class="eyebrow">2026-06-19 更新 · 从零开始配置 Codex</p>
           <h1><span>Codex 国内配置</span><span>教程</span><span>与 AI 内容平台起点</span></h1>
           <p class="lead">
-            从安装、登录、网络环境、配置文件到常见问题，一页把 Codex 跑起来。
-            后续可以继续扩展 AI 工具教程、模型实践、提示词案例和用户/作者体系。
+            不默认你知道 Codex 是什么。从选择安装入口、准备账号、运行第一条命令，
+            到登录、配置和排错，按步骤把 Codex 跑起来。
           </p>
           <div class="hero-actions">
-            <a class="primary-action" href="#guide">开始配置</a>
+            <a class="primary-action" href="#starter">从 0 开始</a>
             <a class="secondary-action" href="#architecture">查看扩展结构</a>
           </div>
           <form class="hero-search" id="heroSearch" role="search">
@@ -48,8 +49,8 @@
             <button type="submit">搜索</button>
           </form>
           <div class="metric-row" aria-label="平台概览">
-            <span><strong>6</strong> 个配置步骤</span>
-            <span><strong>4</strong> 类内容栏目</span>
+            <span><strong>10</strong> 分钟新手路线</span>
+            <span><strong>3</strong> 种安装入口</span>
             <span><strong>5</strong> 种用户角色</span>
           </div>
         </div>
@@ -78,22 +79,132 @@ sandbox = "elevated"</code></pre>
         </div>
       </section>
 
+      <section class="glossary-section" aria-label="AI 术语解释">
+        <div class="section-head">
+          <span class="panel-label">术语解释</span>
+          <h2>AI 相关术语</h2>
+        </div>
+        <div class="glossary-grid">
+          <article><strong>Codex</strong><span>OpenAI 的编程智能体，可以读代码、改代码、运行命令、解释问题。</span></article>
+          <article><strong>模型</strong><span>AI 背后的能力核心。不同模型在速度、推理、代码能力和成本上会不同。</span></article>
+          <article><strong>提示词</strong><span>你给 AI 的任务说明。越清楚地写目标、背景、限制和验收标准，结果越稳定。</span></article>
+          <article><strong>上下文</strong><span>AI 当前能看到的信息，包括你的问题、文件、终端输出、网页资料和历史对话。</span></article>
+          <article><strong>API Key</strong><span>调用 OpenAI Platform 的密钥，像密码一样保管，不要发给别人或提交到 GitHub。</span></article>
+          <article><strong>CLI</strong><span>命令行工具。Codex CLI 适合在 PowerShell、终端、CI/CD 或脚本里使用。</span></article>
+          <article><strong>Sandbox</strong><span>沙盒权限，用来限制 AI 能读写哪些文件、能不能联网，避免误操作。</span></article>
+          <article><strong>MCP</strong><span>模型上下文协议，用来把 GitHub、数据库、文档等外部工具接入 Codex。</span></article>
+        </div>
+      </section>
+
       <section class="quick-panel" aria-label="快速判断">
         <div>
-          <span class="panel-label">适合你吗</span>
-          <h2>如果你准备在国内环境长期使用 Codex，先按这个顺序配置。</h2>
+          <span class="panel-label">先别急着装</span>
+          <h2>新手先准备 4 件事，后面基本不会卡。</h2>
         </div>
         <div class="check-grid">
-          <div>能稳定访问 ChatGPT / OpenAI 官方服务</div>
-          <div>已准备 ChatGPT 登录或 Platform API Key</div>
-          <div>Windows 已开启推荐 sandbox 设置</div>
-          <div>已规划后续内容和用户权限</div>
+          <div><strong>账号</strong><span>ChatGPT 登录最省心；自动化再考虑 API Key。</span></div>
+          <div><strong>网络</strong><span>浏览器和终端都要能访问官方服务。</span></div>
+          <div><strong>系统</strong><span>Windows 11 最推荐；Windows 10 需要保持更新。</span></div>
+          <div><strong>安全</strong><span>不要共享 API Key、访问令牌和 auth.json。</span></div>
+        </div>
+      </section>
+
+      <section class="starter-section" id="starter">
+        <div class="section-head">
+          <span class="panel-label">零基础路线</span>
+          <h2>第一次接触 Codex，就按这条路线走</h2>
+          <p>
+            目标不是把所有概念一次讲完，而是让用户先完成一次可验证的安装：
+            能打开 Codex、能登录、能在一个测试文件夹里让它回答或执行简单任务。
+          </p>
+        </div>
+
+        <div class="choice-grid">
+          <article class="choice-card recommended">
+            <span class="tag">推荐</span>
+            <h3>我只想先用起来</h3>
+            <p>优先用 Codex App 或 IDE 扩展。界面直观，适合第一次体验和日常改代码。</p>
+            <a href="#install">看安装步骤</a>
+          </article>
+          <article class="choice-card">
+            <span class="tag">命令行</span>
+            <h3>我会用 PowerShell</h3>
+            <p>安装 CLI，适合本地项目、脚本、批量操作和后续自动化。</p>
+            <a href="#cli-path">看 CLI 路线</a>
+          </article>
+          <article class="choice-card">
+            <span class="tag">进阶</span>
+            <h3>我的项目在 Linux/WSL</h3>
+            <p>使用 WSL2，把仓库放在 Linux home 目录，减少路径和权限问题。</p>
+            <a href="#windows">看 Windows 说明</a>
+          </article>
+        </div>
+
+        <div class="beginner-flow" id="cli-path">
+          <div class="flow-step">
+            <span>1</span>
+            <div>
+              <h3>确认你能访问官方服务</h3>
+              <p>先在浏览器打开 ChatGPT 或 OpenAI Platform。国内环境下，如果浏览器都打不开，CLI 登录也大概率会失败。</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span>2</span>
+            <div>
+              <h3>安装 Codex CLI</h3>
+              <p>Windows 打开 PowerShell，复制下面命令。安装完成后重新打开一个终端。</p>
+              <div class="code-card compact">
+                <button class="copy-button" data-copy="$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex">复制</button>
+                <pre><code>$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex</code></pre>
+              </div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span>3</span>
+            <div>
+              <h3>检查是否安装成功</h3>
+              <p>能看到版本号，就说明命令已经可用。</p>
+              <div class="code-card compact">
+                <button class="copy-button" data-copy="codex --version">复制</button>
+                <pre><code>codex --version</code></pre>
+              </div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span>4</span>
+            <div>
+              <h3>登录账号</h3>
+              <p>第一次用建议 ChatGPT 登录。浏览器回调失败时，再用设备码登录。</p>
+              <div class="command-pair">
+                <div class="code-card compact">
+                  <button class="copy-button" data-copy="codex login">复制</button>
+                  <pre><code>codex login</code></pre>
+                </div>
+                <div class="code-card compact">
+                  <button class="copy-button" data-copy="codex login --device-auth">复制</button>
+                  <pre><code>codex login --device-auth</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span>5</span>
+            <div>
+              <h3>做一次最小测试</h3>
+              <p>新建一个空文件夹，在里面启动 Codex，让它解释当前目录或帮你创建一个测试文件。先在无关紧要的文件夹里练手。</p>
+              <div class="code-card compact">
+                <button class="copy-button" data-copy="mkdir codex-test; cd codex-test; codex">复制</button>
+                <pre><code>mkdir codex-test; cd codex-test; codex</code></pre>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       <section class="layout" id="guide">
         <aside class="toc" aria-label="教程目录">
           <p>教程目录</p>
+          <a href="#starter">0. 新手路线</a>
           <a href="#install">1. 安装 Codex</a>
           <a href="#auth">2. 登录方式</a>
           <a href="#network">3. 国内网络环境</a>
@@ -105,9 +216,10 @@ sandbox = "elevated"</code></pre>
         <article class="article">
           <div class="article-head">
             <span class="tag">Codex 配置</span>
-            <h2>国内用户 Codex 配置教程</h2>
+            <h2>安装之后，再做这些稳定配置</h2>
             <p>
-              本教程以“官方登录 + 本地配置 + 稳定网络 + 安全边界”为主线。不要使用来历不明的镜像、代登或共享密钥。
+              前面的新手路线负责“跑起来”。下面这些内容负责“长期稳定使用”：
+              登录方式、国内网络、配置文件、Windows sandbox 和排错。
             </p>
           </div>
 
@@ -116,7 +228,7 @@ sandbox = "elevated"</code></pre>
             <div>
               <h3>安装 Codex</h3>
               <p>
-                Windows 推荐使用官方 Windows App、CLI 或 IDE 扩展。需要命令行时，PowerShell 可使用官方安装脚本：
+                完全新手优先选 App 或 IDE 扩展；想用命令行时再装 CLI。Windows PowerShell 可使用官方安装脚本：
               </p>
               <div class="code-card">
                 <button class="copy-button" data-copy="$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex">复制</button>

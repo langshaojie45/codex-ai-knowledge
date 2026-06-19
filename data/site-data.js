@@ -5,8 +5,8 @@ window.KNOWLEDGE_DATA = {
       title: "国内用户 Codex 配置教程",
       category: "Codex",
       level: "入门",
-      summary: "安装、登录、网络、配置文件、Windows sandbox 和常见排错。",
-      meta: "18 分钟 · 已发布",
+      summary: "从零选择入口、安装 CLI、登录、验证、配置文件、Windows sandbox 和常见排错。",
+      meta: "25 分钟 · 已发布",
     },
     {
       title: "提示词工程基础清单",
