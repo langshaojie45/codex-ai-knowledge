@@ -54,27 +54,34 @@
             <span><strong>5</strong> 种用户角色</span>
           </div>
         </div>
-        <div class="hero-visual" aria-label="Codex 配置工作台示意图">
+        <div class="hero-visual interactive-hero" aria-label="Codex 配置交互控制台">
+          <div class="console-toolbar" aria-label="配置步骤切换">
+            <button class="active" data-terminal-step="0">安装</button>
+            <button data-terminal-step="1">登录</button>
+            <button data-terminal-step="2">配置</button>
+            <button data-terminal-step="3">验证</button>
+          </div>
           <div class="terminal-window">
             <div class="window-bar">
               <span></span><span></span><span></span>
+              <strong id="terminalStatus">准备安装</strong>
             </div>
-            <pre><code>codex login --device-auth
-codex -c web_search=cached
-
-~/.codex/config.toml
-model = "gpt-5.5"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-
-[windows]
-sandbox = "elevated"</code></pre>
+            <pre><code id="terminalText">$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex</code></pre>
+            <div class="terminal-hint">
+              <span class="signal"></span>
+              <p id="terminalHint">Windows 打开 PowerShell，复制命令即可开始安装。</p>
+            </div>
           </div>
           <div class="route-map">
-            <span class="node active"></span>
-            <span class="node"></span>
-            <span class="node"></span>
+            <span class="node active" data-route-node="0"></span>
+            <span class="node" data-route-node="1"></span>
+            <span class="node" data-route-node="2"></span>
             <span class="line"></span>
+          </div>
+          <div class="status-stack" aria-hidden="true">
+            <span>PowerShell</span>
+            <span>Auth</span>
+            <span>Config</span>
           </div>
         </div>
       </section>
@@ -153,7 +160,10 @@ sandbox = "elevated"</code></pre>
             <div>
               <h3>安装 Codex CLI</h3>
               <p>Windows 打开 PowerShell，复制下面命令。安装完成后重新打开一个终端。</p>
-              <div class="code-card compact">
+              <div class="code-actions">
+                <a class="open-link" href="https://chatgpt.com/codex/install.ps1" target="_blank" rel="noreferrer">打开安装脚本</a>
+              </div>
+              <div class="code-card compact" data-copy="$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex" tabindex="0" role="button" aria-label="点击复制安装命令">
                 <button class="copy-button" data-copy="$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex">复制</button>
                 <pre><code>$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex</code></pre>
               </div>
@@ -164,7 +174,7 @@ sandbox = "elevated"</code></pre>
             <div>
               <h3>检查是否安装成功</h3>
               <p>能看到版本号，就说明命令已经可用。</p>
-              <div class="code-card compact">
+              <div class="code-card compact" data-copy="codex --version" tabindex="0" role="button" aria-label="点击复制版本检查命令">
                 <button class="copy-button" data-copy="codex --version">复制</button>
                 <pre><code>codex --version</code></pre>
               </div>
@@ -176,11 +186,11 @@ sandbox = "elevated"</code></pre>
               <h3>登录账号</h3>
               <p>第一次用建议 ChatGPT 登录。浏览器回调失败时，再用设备码登录。</p>
               <div class="command-pair">
-                <div class="code-card compact">
+                <div class="code-card compact" data-copy="codex login" tabindex="0" role="button" aria-label="点击复制登录命令">
                   <button class="copy-button" data-copy="codex login">复制</button>
                   <pre><code>codex login</code></pre>
                 </div>
-                <div class="code-card compact">
+                <div class="code-card compact" data-copy="codex login --device-auth" tabindex="0" role="button" aria-label="点击复制设备码登录命令">
                   <button class="copy-button" data-copy="codex login --device-auth">复制</button>
                   <pre><code>codex login --device-auth</code></pre>
                 </div>
@@ -192,7 +202,7 @@ sandbox = "elevated"</code></pre>
             <div>
               <h3>做一次最小测试</h3>
               <p>新建一个空文件夹，在里面启动 Codex，让它解释当前目录或帮你创建一个测试文件。先在无关紧要的文件夹里练手。</p>
-              <div class="code-card compact">
+              <div class="code-card compact" data-copy="mkdir codex-test; cd codex-test; codex" tabindex="0" role="button" aria-label="点击复制测试命令">
                 <button class="copy-button" data-copy="mkdir codex-test; cd codex-test; codex">复制</button>
                 <pre><code>mkdir codex-test; cd codex-test; codex</code></pre>
               </div>
@@ -230,7 +240,10 @@ sandbox = "elevated"</code></pre>
               <p>
                 完全新手优先选 App 或 IDE 扩展；想用命令行时再装 CLI。Windows PowerShell 可使用官方安装脚本：
               </p>
-              <div class="code-card">
+              <div class="code-actions">
+                <a class="open-link" href="https://chatgpt.com/codex/install.ps1" target="_blank" rel="noreferrer">打开安装脚本</a>
+              </div>
+              <div class="code-card" data-copy="$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex" tabindex="0" role="button" aria-label="点击复制安装命令">
                 <button class="copy-button" data-copy="$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex">复制</button>
                 <pre><code>$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex</code></pre>
               </div>
