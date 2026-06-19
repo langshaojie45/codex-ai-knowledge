@@ -230,9 +230,12 @@
       { name: "spark", text: "点我会生成灵感火花。" },
       { name: "shy", text: "哎呀，别戳太快。" },
       { name: "ready", text: "准备好安装 Codex 了吗？" },
+      { name: "wink", text: "这个位置不错。" },
     ];
     let moodIndex = 0;
     let lastMove = 0;
+    let dragState = null;
+    let didDrag = false;
 
     function setMood(mood) {
       codexPet.dataset.mood = mood.name;
@@ -241,22 +244,99 @@
       window.setTimeout(() => codexPet.classList.remove("reacting"), 520);
     }
 
+    function clampPet(left, top) {
+      const rect = codexPet.getBoundingClientRect();
+      const margin = 10;
+      return {
+        left: Math.min(Math.max(margin, left), window.innerWidth - rect.width - margin),
+        top: Math.min(Math.max(margin, top), window.innerHeight - rect.height - margin),
+      };
+    }
+
+    function updateBubbleSide() {
+      const rect = codexPet.getBoundingClientRect();
+      codexPet.dataset.side = rect.left + rect.width / 2 < window.innerWidth / 2 ? "left" : "right";
+    }
+
+    function placePet(left, top) {
+      const next = clampPet(left, top);
+      codexPet.style.left = `${next.left}px`;
+      codexPet.style.top = `${next.top}px`;
+      codexPet.style.right = "auto";
+      codexPet.style.bottom = "auto";
+      updateBubbleSide();
+    }
+
     codexPet.addEventListener("mouseenter", () => {
+      if (dragState) return;
       setMood({ name: "curious", text: "我看到鼠标靠近了。" });
     });
 
     codexPet.addEventListener("mouseleave", () => {
+      if (dragState) return;
       setMood({ name: "idle", text: "我在右下角陪你。" });
-      codexPet.style.setProperty("--pet-x", "0px");
-      codexPet.style.setProperty("--pet-y", "0px");
+      codexPet.style.setProperty("--pet-nudge-x", "0px");
+      codexPet.style.setProperty("--pet-nudge-y", "0px");
     });
 
-    codexPet.addEventListener("click", () => {
+    codexPet.addEventListener("pointerdown", (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+      const rect = codexPet.getBoundingClientRect();
+      dragState = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        left: rect.left,
+        top: rect.top,
+      };
+      didDrag = false;
+      codexPet.setPointerCapture?.(event.pointerId);
+      codexPet.classList.add("dragging");
+      codexPet.style.setProperty("--pet-nudge-x", "0px");
+      codexPet.style.setProperty("--pet-nudge-y", "0px");
+      setMood({ name: "drag", text: "拖我去你喜欢的位置。" });
+    });
+
+    codexPet.addEventListener("pointermove", (event) => {
+      if (!dragState || event.pointerId !== dragState.pointerId) return;
+      const dx = event.clientX - dragState.startX;
+      const dy = event.clientY - dragState.startY;
+      if (Math.hypot(dx, dy) > 4) didDrag = true;
+      placePet(dragState.left + dx, dragState.top + dy);
+      event.preventDefault();
+    });
+
+    codexPet.addEventListener("pointerup", (event) => {
+      if (!dragState || event.pointerId !== dragState.pointerId) return;
+      codexPet.releasePointerCapture?.(event.pointerId);
+      codexPet.classList.remove("dragging");
+      dragState = null;
+      if (didDrag) {
+        setMood({ name: "settled", text: "安家成功。" });
+        window.setTimeout(() => {
+          didDrag = false;
+        }, 0);
+      }
+    });
+
+    codexPet.addEventListener("pointercancel", () => {
+      dragState = null;
+      didDrag = false;
+      codexPet.classList.remove("dragging");
+    });
+
+    codexPet.addEventListener("click", (event) => {
+      if (didDrag) {
+        event.preventDefault();
+        didDrag = false;
+        return;
+      }
       moodIndex = (moodIndex + 1) % moods.length;
       setMood(moods[moodIndex]);
     });
 
     window.addEventListener("pointermove", (event) => {
+      if (dragState) return;
       const now = Date.now();
       if (now - lastMove < 40) return;
       lastMove = now;
@@ -269,13 +349,23 @@
       if (dist < 170) {
         const force = (1 - dist / 170) * 22;
         const angle = Math.atan2(dy, dx);
-        codexPet.style.setProperty("--pet-x", `${Math.cos(angle) * force}px`);
-        codexPet.style.setProperty("--pet-y", `${Math.sin(angle) * force}px`);
+        codexPet.style.setProperty("--pet-nudge-x", `${Math.cos(angle) * force}px`);
+        codexPet.style.setProperty("--pet-nudge-y", `${Math.sin(angle) * force}px`);
         if (dist < 95) {
           setMood({ name: "surprise", text: "哇，靠太近啦。" });
         }
+      } else {
+        codexPet.style.setProperty("--pet-nudge-x", "0px");
+        codexPet.style.setProperty("--pet-nudge-y", "0px");
       }
     });
+
+    window.addEventListener("resize", () => {
+      const rect = codexPet.getBoundingClientRect();
+      placePet(rect.left, rect.top);
+    });
+
+    updateBubbleSide();
   }
 
   function renderTabs() {
