@@ -21,14 +21,34 @@
   const particleCanvas = document.querySelector("#particleCanvas");
   const codexPet = document.querySelector("#codexPet");
   const petBubble = document.querySelector("#petBubble");
+  const articleDrawer = document.querySelector("#articleDrawer");
+  const drawerBackdrop = document.querySelector("#drawerBackdrop");
+  const drawerClose = document.querySelector("#drawerClose");
+  const drawerCategory = document.querySelector("#drawerCategory");
+  const drawerTitle = document.querySelector("#drawerTitle");
+  const drawerSummary = document.querySelector("#drawerSummary");
+  const drawerMeta = document.querySelector("#drawerMeta");
+  const drawerBody = document.querySelector("#drawerBody");
+  const drawerSource = document.querySelector("#drawerSource");
+  const drawerCopyLink = document.querySelector("#drawerCopyLink");
   let currentCategory = "全部";
   let setupStep = 0;
+  let currentArticle = null;
   const setupAnswers = {
     system: "windows",
     auth: "chatgpt",
     network: "ok",
     goal: "cli",
   };
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
 
   const setupQuestions = [
     {
@@ -271,27 +291,77 @@
     const keyword = searchInput.value.trim().toLowerCase();
     const articles = data.articles.filter((article) => {
       const matchesCategory = currentCategory === "全部" || article.category === currentCategory;
-      const haystack = `${article.title} ${article.category} ${article.summary}`.toLowerCase();
+      const haystack = `${article.title} ${article.category} ${article.summary} ${(article.highlights || []).join(" ")}`.toLowerCase();
       return matchesCategory && (!keyword || haystack.includes(keyword));
     });
+
+    if (!articles.length) {
+      articleGrid.innerHTML = `<div class="empty-state">没有找到匹配内容，换个关键词试试。</div>`;
+      return;
+    }
 
     articleGrid.innerHTML = articles
       .map(
         (article) => `
-          <article class="content-card">
-            <div>
-              <span class="tag">${article.category}</span>
-              <h3>${article.title}</h3>
-              <p>${article.summary}</p>
-            </div>
-            <footer>
+          <button class="content-card" type="button" data-article-slug="${article.slug}">
+            <span class="tag">${article.category}</span>
+            <span class="content-card-main">
+              <strong>${article.title}</strong>
+              <span>${article.summary}</span>
+            </span>
+            <span class="content-card-footer">
               <span>${article.level}</span>
               <span>${article.meta}</span>
-            </footer>
-          </article>
+            </span>
+          </button>
         `,
       )
       .join("");
+  }
+
+  function closeArticle() {
+    if (!articleDrawer) return;
+    articleDrawer.classList.remove("open");
+    articleDrawer.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("drawer-open");
+  }
+
+  function openArticle(slug) {
+    const article = data.articles.find((item) => item.slug === slug);
+    if (!article || !articleDrawer) return;
+    currentArticle = article;
+    drawerCategory.textContent = article.category;
+    drawerTitle.textContent = article.title;
+    drawerSummary.textContent = article.summary;
+    drawerMeta.innerHTML = `<span>${article.level}</span><span>${article.meta}</span>`;
+    drawerBody.innerHTML = `
+      <section>
+        <h3>核心要点</h3>
+        <ul>${article.highlights.map((item) => `<li>${item}</li>`).join("")}</ul>
+      </section>
+      <section>
+        <h3>可复制命令 / 提示词</h3>
+        ${article.commands
+          .map(
+            (command) => `
+              <div class="code-card compact" data-copy="${escapeHtml(command)}" tabindex="0" role="button" aria-label="点击复制内容">
+                <button class="copy-button" data-copy="${escapeHtml(command)}">复制</button>
+                <pre><code>${escapeHtml(command)}</code></pre>
+              </div>
+            `,
+          )
+          .join("")}
+      </section>
+      <section>
+        <h3>检查清单</h3>
+        <div class="drawer-checklist">${article.checklist.map((item) => `<span>${item}</span>`).join("")}</div>
+      </section>
+    `;
+    drawerSource.href = article.source;
+    articleDrawer.classList.add("open");
+    articleDrawer.setAttribute("aria-hidden", "false");
+    document.body.classList.add("drawer-open");
+    drawerClose.focus();
   }
 
   function renderRoles() {
@@ -438,6 +508,11 @@
       renderArticles();
     }
 
+    const articleButton = event.target.closest("[data-article-slug]");
+    if (articleButton) {
+      openArticle(articleButton.dataset.articleSlug);
+    }
+
     const accordionButton = event.target.closest(".accordion button");
     if (accordionButton) {
       const expanded = accordionButton.getAttribute("aria-expanded") === "true";
@@ -463,7 +538,22 @@
     renderSetup();
   });
 
+  drawerBackdrop?.addEventListener("click", closeArticle);
+  drawerClose?.addEventListener("click", closeArticle);
+  drawerCopyLink?.addEventListener("click", () => {
+    if (!currentArticle) return;
+    navigator.clipboard.writeText(currentArticle.title);
+    drawerCopyLink.textContent = "已复制";
+    window.setTimeout(() => {
+      drawerCopyLink.textContent = "复制文章标题";
+    }, 1200);
+  });
+
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeArticle();
+    }
+
     const copyCard = event.target.closest?.(".code-card[data-copy]");
     if (copyCard && (event.key === "Enter" || event.key === " ")) {
       event.preventDefault();
