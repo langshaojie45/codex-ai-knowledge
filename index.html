@@ -32,6 +32,14 @@
     </header>
 
     <main id="top">
+      <section class="particle-hero" aria-label="AI 粒子交互背景">
+        <canvas id="particleCanvas"></canvas>
+        <div class="particle-copy">
+          <span class="panel-label">AI Knowledge Field</span>
+          <h2>移动鼠标，扰动这片 AI 粒子场</h2>
+        </div>
+      </section>
+
       <section class="hero">
         <div class="hero-copy">
           <p class="eyebrow">2026-06-19 更新 · 从零开始配置 Codex</p>
@@ -444,6 +452,16 @@ include_only = ["PATH", "HOME", "USERPROFILE", "TEMP", "TMP"]</code></pre>
       <span>AI 配置知识库</span>
       <span>为后续内容与用户体系预留扩展空间</span>
     </footer>
+
+    <button class="codex-pet" id="codexPet" type="button" aria-label="Codex 桌面小助手">
+      <span class="pet-aura"></span>
+      <span class="pet-face">
+        <span class="pet-eye left"></span>
+        <span class="pet-eye right"></span>
+        <span class="pet-mouth"></span>
+      </span>
+      <span class="pet-bubble" id="petBubble">碰我试试</span>
+    </button>
 
     <script src="./data/site-data.js"></script>
     <script src="./assets/app.js"></script>

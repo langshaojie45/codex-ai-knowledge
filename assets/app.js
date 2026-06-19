@@ -18,6 +18,9 @@
   const setupCopy = document.querySelector("#setupCopy");
   const setupPrev = document.querySelector("#setupPrev");
   const setupNext = document.querySelector("#setupNext");
+  const particleCanvas = document.querySelector("#particleCanvas");
+  const codexPet = document.querySelector("#codexPet");
+  const petBubble = document.querySelector("#petBubble");
   let currentCategory = "全部";
   let setupStep = 0;
   const setupAnswers = {
@@ -69,6 +72,191 @@
       ],
     },
   ];
+
+  function initParticleField() {
+    if (!particleCanvas) return;
+    const ctx = particleCanvas.getContext("2d");
+    const pointer = { x: -9999, y: -9999, active: false };
+    let width = 0;
+    let height = 0;
+    let ratio = 1;
+    let particles = [];
+    let hueShift = 0;
+
+    function resize() {
+      const rect = particleCanvas.getBoundingClientRect();
+      ratio = Math.min(window.devicePixelRatio || 1, 2);
+      width = Math.max(1, rect.width);
+      height = Math.max(1, rect.height);
+      particleCanvas.width = Math.floor(width * ratio);
+      particleCanvas.height = Math.floor(height * ratio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      const count = Math.min(95, Math.max(42, Math.floor(width / 18)));
+      particles = Array.from({ length: count }, (_, index) => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        ox: Math.random() * width,
+        oy: Math.random() * height,
+        vx: 0,
+        vy: 0,
+        size: 1.4 + Math.random() * 2.8,
+        phase: index * 0.37 + Math.random() * 4,
+      }));
+    }
+
+    function setPointer(event) {
+      const rect = particleCanvas.getBoundingClientRect();
+      const source = event.touches ? event.touches[0] : event;
+      pointer.x = source.clientX - rect.left;
+      pointer.y = source.clientY - rect.top;
+      pointer.active = true;
+    }
+
+    function clearPointer() {
+      pointer.active = false;
+      pointer.x = -9999;
+      pointer.y = -9999;
+    }
+
+    function draw() {
+      hueShift += 0.008;
+      ctx.clearRect(0, 0, width, height);
+
+      const glowX = pointer.active ? pointer.x : width * (0.52 + Math.sin(hueShift) * 0.22);
+      const glowY = pointer.active ? pointer.y : height * (0.48 + Math.cos(hueShift * 0.8) * 0.2);
+      const gradient = ctx.createRadialGradient(glowX, glowY, 0, glowX, glowY, Math.max(width, height) * 0.72);
+      gradient.addColorStop(0, "rgba(76, 197, 172, 0.34)");
+      gradient.addColorStop(0.36, "rgba(217, 129, 43, 0.15)");
+      gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+
+      for (const particle of particles) {
+        const waveX = Math.sin(hueShift * 1.4 + particle.phase) * 0.35;
+        const waveY = Math.cos(hueShift * 1.2 + particle.phase) * 0.35;
+        const dx = particle.x - pointer.x;
+        const dy = particle.y - pointer.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const radius = pointer.active ? 150 : 0;
+
+        if (dist < radius) {
+          const force = (1 - dist / radius) * 1.9;
+          particle.vx += (dx / dist) * force;
+          particle.vy += (dy / dist) * force;
+        }
+
+        particle.vx += (particle.ox - particle.x) * 0.006 + waveX;
+        particle.vy += (particle.oy - particle.y) * 0.006 + waveY;
+        particle.vx *= 0.9;
+        particle.vy *= 0.9;
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+      }
+
+      for (let i = 0; i < particles.length; i += 1) {
+        for (let j = i + 1; j < particles.length; j += 1) {
+          const a = particles[i];
+          const b = particles[j];
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+          if (dist < 105) {
+            const alpha = (1 - dist / 105) * 0.28;
+            ctx.strokeStyle = `rgba(0, 121, 107, ${alpha})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      if (pointer.active) {
+        ctx.strokeStyle = "rgba(217, 129, 43, 0.5)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(pointer.x, pointer.y, 34 + Math.sin(hueShift * 5) * 7, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      for (const particle of particles) {
+        const distToPointer = Math.hypot(particle.x - pointer.x, particle.y - pointer.y);
+        const hot = pointer.active && distToPointer < 140;
+        ctx.fillStyle = hot ? "rgba(217, 129, 43, 0.95)" : "rgba(0, 121, 107, 0.72)";
+        ctx.shadowBlur = hot ? 18 : 8;
+        ctx.shadowColor = hot ? "rgba(217, 129, 43, 0.75)" : "rgba(76, 197, 172, 0.4)";
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, hot ? particle.size + 1.2 : particle.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      window.requestAnimationFrame(draw);
+    }
+
+    particleCanvas.addEventListener("pointermove", setPointer);
+    particleCanvas.addEventListener("pointerdown", setPointer);
+    particleCanvas.addEventListener("pointerleave", clearPointer);
+    particleCanvas.addEventListener("touchmove", setPointer, { passive: true });
+    particleCanvas.addEventListener("touchend", clearPointer);
+    window.addEventListener("resize", resize);
+    resize();
+    draw();
+  }
+
+  function initCodexPet() {
+    if (!codexPet || !petBubble) return;
+    const moods = [
+      { name: "happy", text: "配置顺利的话，我会很开心。" },
+      { name: "focus", text: "我在盯着你的下一步。" },
+      { name: "spark", text: "点我会生成灵感火花。" },
+      { name: "shy", text: "哎呀，别戳太快。" },
+      { name: "ready", text: "准备好安装 Codex 了吗？" },
+    ];
+    let moodIndex = 0;
+    let lastMove = 0;
+
+    function setMood(mood) {
+      codexPet.dataset.mood = mood.name;
+      petBubble.textContent = mood.text;
+      codexPet.classList.add("reacting");
+      window.setTimeout(() => codexPet.classList.remove("reacting"), 520);
+    }
+
+    codexPet.addEventListener("mouseenter", () => {
+      setMood({ name: "curious", text: "我看到鼠标靠近了。" });
+    });
+
+    codexPet.addEventListener("mouseleave", () => {
+      setMood({ name: "idle", text: "我在右下角陪你。" });
+      codexPet.style.setProperty("--pet-x", "0px");
+      codexPet.style.setProperty("--pet-y", "0px");
+    });
+
+    codexPet.addEventListener("click", () => {
+      moodIndex = (moodIndex + 1) % moods.length;
+      setMood(moods[moodIndex]);
+    });
+
+    window.addEventListener("pointermove", (event) => {
+      const now = Date.now();
+      if (now - lastMove < 40) return;
+      lastMove = now;
+      const rect = codexPet.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const dx = centerX - event.clientX;
+      const dy = centerY - event.clientY;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 170) {
+        const force = (1 - dist / 170) * 22;
+        const angle = Math.atan2(dy, dx);
+        codexPet.style.setProperty("--pet-x", `${Math.cos(angle) * force}px`);
+        codexPet.style.setProperty("--pet-y", `${Math.sin(angle) * force}px`);
+        if (dist < 95) {
+          setMood({ name: "surprise", text: "哇，靠太近啦。" });
+        }
+      }
+    });
+  }
 
   function renderTabs() {
     tabs.innerHTML = data.categories
@@ -309,4 +497,6 @@
   renderArticles();
   renderRoles();
   renderSetup();
+  initParticleField();
+  initCodexPet();
 })();
