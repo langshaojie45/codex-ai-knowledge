@@ -54,34 +54,43 @@
             <span><strong>5</strong> 种用户角色</span>
           </div>
         </div>
-        <div class="hero-visual interactive-hero" aria-label="Codex 配置交互控制台">
-          <div class="console-toolbar" aria-label="配置步骤切换">
-            <button class="active" data-terminal-step="0">安装</button>
-            <button data-terminal-step="1">登录</button>
-            <button data-terminal-step="2">配置</button>
-            <button data-terminal-step="3">验证</button>
-          </div>
-          <div class="terminal-window">
-            <div class="window-bar">
-              <span></span><span></span><span></span>
-              <strong id="terminalStatus">准备安装</strong>
+        <div class="hero-visual interactive-hero" aria-label="Codex 安装配置互动向导">
+          <div class="setup-card">
+            <div class="setup-topline">
+              <span class="panel-label">互动配置向导</span>
+              <strong id="setupProgressText">1 / 4</strong>
             </div>
-            <pre><code id="terminalText">$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex</code></pre>
-            <div class="terminal-hint">
-              <span class="signal"></span>
-              <p id="terminalHint">Windows 打开 PowerShell，复制命令即可开始安装。</p>
+            <div class="setup-progress" aria-hidden="true">
+              <span id="setupProgressBar"></span>
             </div>
-          </div>
-          <div class="route-map">
-            <span class="node active" data-route-node="0"></span>
-            <span class="node" data-route-node="1"></span>
-            <span class="node" data-route-node="2"></span>
-            <span class="line"></span>
-          </div>
-          <div class="status-stack" aria-hidden="true">
-            <span>PowerShell</span>
-            <span>Auth</span>
-            <span>Config</span>
+
+            <div class="setup-question">
+              <h2 id="setupQuestionTitle">你准备用什么系统？</h2>
+              <p id="setupQuestionText">选择后，页面会自动生成适合你的安装命令和下一步。</p>
+            </div>
+
+            <div class="setup-options" id="setupOptions"></div>
+
+            <div class="setup-result">
+              <div class="setup-result-head">
+                <span id="setupResultLabel">推荐命令</span>
+                <button id="setupCopy" type="button">复制命令</button>
+              </div>
+              <pre><code id="setupCommand">$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex</code></pre>
+              <a id="setupOpenLink" href="https://chatgpt.com/codex/install.ps1" target="_blank" rel="noreferrer">打开相关页面</a>
+            </div>
+
+            <div class="setup-checklist" aria-label="你的配置清单">
+              <div class="done" id="setupCheckSystem">选择系统</div>
+              <div id="setupCheckAuth">选择登录方式</div>
+              <div id="setupCheckNetwork">确认网络状态</div>
+              <div id="setupCheckGoal">生成下一步</div>
+            </div>
+
+            <div class="setup-nav">
+              <button id="setupPrev" type="button">上一步</button>
+              <button id="setupNext" type="button">下一步</button>
+            </div>
           </div>
         </div>
       </section>

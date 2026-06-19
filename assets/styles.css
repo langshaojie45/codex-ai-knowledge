@@ -294,30 +294,169 @@ h3 {
   pointer-events: none;
 }
 
-.console-toolbar {
+.setup-card {
   position: relative;
   z-index: 3;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 16px;
+  min-height: 610px;
 }
 
-.console-toolbar button {
-  min-height: 38px;
+.setup-topline,
+.setup-result-head,
+.setup-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.setup-progress {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line), transparent 35%);
+}
+
+.setup-progress span {
+  display: block;
+  width: 25%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.3s ease;
+}
+
+.setup-question h2 {
+  margin-bottom: 10px;
+  font-size: 1.65rem;
+}
+
+.setup-question p {
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.setup-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.setup-options button {
+  display: grid;
+  gap: 7px;
+  min-height: 96px;
+  padding: 14px;
+  text-align: left;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface), transparent 8%);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.setup-options button:hover,
+.setup-options button.active {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 121, 107, 0.22);
+}
+
+.setup-options button.active {
+  background: var(--accent-soft);
+}
+
+.setup-options span {
   color: var(--muted);
+  line-height: 1.45;
+}
+
+.setup-result {
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--code-bg);
+  color: var(--code-text);
+  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.22);
+}
+
+.setup-result-head {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.setup-result-head button,
+.setup-nav button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 800;
 }
 
-.console-toolbar button.active {
+.setup-result-head button {
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--code-text);
+}
+
+.setup-result pre {
+  min-height: 142px;
+  padding: 18px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.65;
+}
+
+.setup-result a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #9debd8;
+  font-weight: 800;
+}
+
+.setup-checklist {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.setup-checklist div {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 800;
+  text-align: center;
+}
+
+.setup-checklist div.done {
+  border-color: color-mix(in srgb, var(--accent), var(--line) 30%);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.setup-nav button {
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.setup-nav button:last-child {
   border-color: var(--accent);
   background: var(--accent);
   color: #fff;
-  box-shadow: 0 10px 24px rgba(0, 121, 107, 0.22);
+}
+
+.setup-nav button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .terminal-window {
@@ -331,15 +470,6 @@ h3 {
   overflow: hidden;
 }
 
-.terminal-window::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgba(76, 197, 172, 0.16);
-  border-radius: 8px;
-  pointer-events: none;
-}
-
 .window-bar {
   display: flex;
   gap: 8px;
@@ -347,12 +477,6 @@ h3 {
   align-items: center;
   padding: 0 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.window-bar strong {
-  margin-left: auto;
-  color: #9debd8;
-  font-size: 0.84rem;
 }
 
 .window-bar span {
@@ -373,36 +497,6 @@ h3 {
 pre {
   margin: 0;
   overflow: auto;
-}
-
-.terminal-window pre {
-  min-height: 250px;
-  padding: 24px;
-  line-height: 1.75;
-}
-
-.terminal-hint {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 14px 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.terminal-hint p {
-  margin: 0;
-  color: #c8d9d5;
-  line-height: 1.55;
-}
-
-.signal {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--accent-2);
-  box-shadow: 0 0 0 0 rgba(217, 129, 43, 0.55);
-  animation: pulseSignal 1.7s ease-out infinite;
 }
 
 code {
@@ -1102,27 +1196,18 @@ code {
     padding: 16px;
   }
 
-  .terminal-window {
-    min-height: 300px;
+  .setup-card {
+    min-height: auto;
   }
 
-  .terminal-window pre {
-    min-height: 210px;
-    padding: 18px;
-    white-space: pre-wrap;
-    word-break: break-all;
+  .setup-options,
+  .setup-checklist {
+    grid-template-columns: 1fr;
   }
 
-  .console-toolbar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .route-map {
-    display: none;
-  }
-
-  .status-stack {
-    display: none;
+  .setup-result pre {
+    max-height: 180px;
+    overflow: auto;
   }
 
   .check-grid,

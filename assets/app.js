@@ -7,36 +7,66 @@
   const heroSearchInput = document.querySelector("#heroSearchInput");
   const roleGrid = document.querySelector("#roleGrid");
   const themeToggle = document.querySelector("#themeToggle");
-  const terminalText = document.querySelector("#terminalText");
-  const terminalStatus = document.querySelector("#terminalStatus");
-  const terminalHint = document.querySelector("#terminalHint");
-  const terminalButtons = document.querySelectorAll("[data-terminal-step]");
-  const routeNodes = document.querySelectorAll("[data-route-node]");
+  const setupProgressText = document.querySelector("#setupProgressText");
+  const setupProgressBar = document.querySelector("#setupProgressBar");
+  const setupQuestionTitle = document.querySelector("#setupQuestionTitle");
+  const setupQuestionText = document.querySelector("#setupQuestionText");
+  const setupOptions = document.querySelector("#setupOptions");
+  const setupResultLabel = document.querySelector("#setupResultLabel");
+  const setupCommand = document.querySelector("#setupCommand");
+  const setupOpenLink = document.querySelector("#setupOpenLink");
+  const setupCopy = document.querySelector("#setupCopy");
+  const setupPrev = document.querySelector("#setupPrev");
+  const setupNext = document.querySelector("#setupNext");
   let currentCategory = "全部";
-  let terminalIndex = 0;
-  let terminalTimer;
-  let terminalAutoTimer;
+  let setupStep = 0;
+  const setupAnswers = {
+    system: "windows",
+    auth: "chatgpt",
+    network: "ok",
+    goal: "cli",
+  };
 
-  const terminalSteps = [
+  const setupQuestions = [
     {
-      status: "准备安装",
-      hint: "Windows 打开 PowerShell，复制命令即可开始安装。",
-      code: "$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex",
+      key: "system",
+      title: "你准备用什么系统？",
+      text: "不同系统的安装命令不一样，先选你的使用环境。",
+      options: [
+        { value: "windows", label: "Windows / PowerShell", detail: "适合大多数国内用户" },
+        { value: "wsl", label: "WSL2 / Linux", detail: "项目在 Linux 环境里" },
+        { value: "mac", label: "macOS", detail: "Mac 终端安装" },
+      ],
     },
     {
-      status: "选择登录",
-      hint: "浏览器回调失败时，用设备码登录更稳。",
-      code: "codex login\n# 如果跳转失败：\ncodex login --device-auth",
+      key: "auth",
+      title: "你准备用哪种登录方式？",
+      text: "第一次使用建议 ChatGPT 登录；自动化和 CI/CD 再考虑 API Key。",
+      options: [
+        { value: "chatgpt", label: "ChatGPT 登录", detail: "日常使用推荐" },
+        { value: "device", label: "设备码登录", detail: "浏览器回调失败时用" },
+        { value: "api", label: "API Key", detail: "按 API 用量计费" },
+      ],
     },
     {
-      status: "写入配置",
-      hint: "把常用默认值放进 ~/.codex/config.toml。",
-      code: 'model = "gpt-5.5"\napproval_policy = "on-request"\nsandbox_mode = "workspace-write"\nweb_search = "cached"\n\n[windows]\nsandbox = "elevated"',
+      key: "network",
+      title: "你的网络环境怎么样？",
+      text: "Codex 登录和模型调用都需要能访问官方服务。",
+      options: [
+        { value: "ok", label: "浏览器能打开官方服务", detail: "继续正常配置" },
+        { value: "callback", label: "登录跳转经常失败", detail: "推荐设备码登录" },
+        { value: "corp", label: "公司网络有证书代理", detail: "可能需要 CA 证书" },
+      ],
     },
     {
-      status: "验证可用",
-      hint: "看到版本号并能进入 Codex，就说明基础配置完成。",
-      code: "codex --version\nmkdir codex-test; cd codex-test\ncodex",
+      key: "goal",
+      title: "你最想先做什么？",
+      text: "我会按你的目标生成第一条可执行命令。",
+      options: [
+        { value: "cli", label: "先在命令行跑起来", detail: "安装、登录、测试" },
+        { value: "config", label: "先配置稳定环境", detail: "生成 config.toml" },
+        { value: "test", label: "做一次最小测试", detail: "建测试目录启动 Codex" },
+      ],
     },
   ];
 
@@ -89,42 +119,98 @@
       .join("");
   }
 
-  function setTerminalStep(index, animate = true) {
-    if (!terminalText) return;
-    window.clearTimeout(terminalTimer);
-    terminalIndex = index;
-    const step = terminalSteps[index];
-    terminalStatus.textContent = step.status;
-    terminalHint.textContent = step.hint;
-    terminalButtons.forEach((button) => {
-      button.classList.toggle("active", Number(button.dataset.terminalStep) === index);
-    });
-    routeNodes.forEach((node, nodeIndex) => {
-      node.classList.toggle("active", nodeIndex <= Math.min(index, routeNodes.length - 1));
-    });
-
-    if (!animate) {
-      terminalText.textContent = step.code;
-      return;
-    }
-
-    terminalText.textContent = "";
-    let cursor = 0;
-    function typeNext() {
-      terminalText.textContent = `${step.code.slice(0, cursor)}${cursor < step.code.length ? "▋" : ""}`;
-      cursor += 1;
-      if (cursor <= step.code.length) {
-        terminalTimer = window.setTimeout(typeNext, 18);
+  function getSetupRecommendation() {
+    if (setupStep === 0) {
+      if (setupAnswers.system === "wsl" || setupAnswers.system === "mac") {
+        return {
+          label: "安装命令",
+          code: "curl -fsSL https://chatgpt.com/codex/install.sh | sh",
+          url: "https://chatgpt.com/codex/install.sh",
+        };
       }
+      return {
+        label: "安装命令",
+        code: "$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex",
+        url: "https://chatgpt.com/codex/install.ps1",
+      };
     }
-    typeNext();
+
+    if (setupStep === 1 || setupAnswers.network === "callback") {
+      const authCommands = {
+        chatgpt: "codex login",
+        device: "codex login --device-auth",
+        api: "codex login --api-key",
+      };
+      return {
+        label: "登录命令",
+        code: authCommands[setupAnswers.auth],
+        url: setupAnswers.auth === "api" ? "https://platform.openai.com/api-keys" : "https://chatgpt.com",
+      };
+    }
+
+    if (setupStep === 2 && setupAnswers.network === "corp") {
+      return {
+        label: "证书环境变量",
+        code: 'setx CODEX_CA_CERTIFICATE "C:\\\\path\\\\to\\\\corporate-root-ca.pem"',
+        url: "https://developers.openai.com/codex/codex-manual.md",
+      };
+    }
+
+    if (setupAnswers.goal === "config") {
+      return {
+        label: "推荐配置",
+        code: 'model = "gpt-5.5"\napproval_policy = "on-request"\nsandbox_mode = "workspace-write"\nweb_search = "cached"\n\n[windows]\nsandbox = "elevated"',
+        url: "https://developers.openai.com/codex/codex-manual.md",
+      };
+    }
+
+    if (setupAnswers.goal === "test") {
+      return {
+        label: "最小测试",
+        code: "mkdir codex-test; cd codex-test; codex",
+        url: "#starter",
+      };
+    }
+
+    return {
+      label: "检查命令",
+      code: "codex --version\ncodex login\nmkdir codex-test; cd codex-test; codex",
+      url: "#starter",
+    };
   }
 
-  function restartTerminalAutoPlay() {
-    window.clearInterval(terminalAutoTimer);
-    terminalAutoTimer = window.setInterval(() => {
-      setTerminalStep((terminalIndex + 1) % terminalSteps.length);
-    }, 5200);
+  function renderSetup() {
+    if (!setupOptions) return;
+    const question = setupQuestions[setupStep];
+    const progress = ((setupStep + 1) / setupQuestions.length) * 100;
+    const recommendation = getSetupRecommendation();
+
+    setupProgressText.textContent = `${setupStep + 1} / ${setupQuestions.length}`;
+    setupProgressBar.style.width = `${progress}%`;
+    setupQuestionTitle.textContent = question.title;
+    setupQuestionText.textContent = question.text;
+    setupOptions.innerHTML = question.options
+      .map(
+        (option) => `
+          <button class="${setupAnswers[question.key] === option.value ? "active" : ""}" data-setup-option="${option.value}">
+            <strong>${option.label}</strong>
+            <span>${option.detail}</span>
+          </button>
+        `,
+      )
+      .join("");
+
+    setupResultLabel.textContent = recommendation.label;
+    setupCommand.textContent = recommendation.code;
+    setupOpenLink.href = recommendation.url;
+    setupOpenLink.textContent = recommendation.url.startsWith("http") ? "打开相关页面" : "跳到对应教程";
+    setupPrev.disabled = setupStep === 0;
+    setupNext.textContent = setupStep === setupQuestions.length - 1 ? "重新开始" : "下一步";
+
+    document.querySelector("#setupCheckSystem").classList.toggle("done", setupStep >= 0);
+    document.querySelector("#setupCheckAuth").classList.toggle("done", setupStep >= 1);
+    document.querySelector("#setupCheckNetwork").classList.toggle("done", setupStep >= 2);
+    document.querySelector("#setupCheckGoal").classList.toggle("done", setupStep >= 3);
   }
 
   document.addEventListener("click", (event) => {
@@ -146,10 +232,14 @@
       return;
     }
 
-    const terminalButton = event.target.closest("[data-terminal-step]");
-    if (terminalButton) {
-      setTerminalStep(Number(terminalButton.dataset.terminalStep));
-      restartTerminalAutoPlay();
+    const setupOption = event.target.closest("[data-setup-option]");
+    if (setupOption) {
+      const key = setupQuestions[setupStep].key;
+      setupAnswers[key] = setupOption.dataset.setupOption;
+      if (key === "network" && setupAnswers.network === "callback") {
+        setupAnswers.auth = "device";
+      }
+      renderSetup();
       return;
     }
 
@@ -165,6 +255,24 @@
       const expanded = accordionButton.getAttribute("aria-expanded") === "true";
       accordionButton.setAttribute("aria-expanded", String(!expanded));
     }
+  });
+
+  setupCopy?.addEventListener("click", () => {
+    navigator.clipboard.writeText(setupCommand.textContent);
+    setupCopy.textContent = "已复制";
+    window.setTimeout(() => {
+      setupCopy.textContent = "复制命令";
+    }, 1200);
+  });
+
+  setupPrev?.addEventListener("click", () => {
+    setupStep = Math.max(0, setupStep - 1);
+    renderSetup();
+  });
+
+  setupNext?.addEventListener("click", () => {
+    setupStep = setupStep === setupQuestions.length - 1 ? 0 : setupStep + 1;
+    renderSetup();
   });
 
   document.addEventListener("keydown", (event) => {
@@ -200,6 +308,5 @@
   renderTabs();
   renderArticles();
   renderRoles();
-  setTerminalStep(0);
-  restartTerminalAutoPlay();
+  renderSetup();
 })();
