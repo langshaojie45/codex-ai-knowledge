@@ -400,7 +400,7 @@ code {
   gap: 12px;
 }
 
-.check-grid label {
+.check-grid div {
   display: flex;
   align-items: flex-start;
   gap: 10px;
