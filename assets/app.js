@@ -236,6 +236,7 @@
     let lastMove = 0;
     let dragState = null;
     let didDrag = false;
+    let dragEndAt = 0;
 
     function setMood(mood) {
       codexPet.dataset.mood = mood.name;
@@ -264,7 +265,54 @@
       codexPet.style.top = `${next.top}px`;
       codexPet.style.right = "auto";
       codexPet.style.bottom = "auto";
+      localStorage.setItem("codex-pet-position", JSON.stringify(next));
       updateBubbleSide();
+    }
+
+    function beginDrag(event) {
+      if (dragState) return;
+      if (event.button !== undefined && event.button !== 0) return;
+      const point = event.touches ? event.touches[0] : event;
+      if (!point) return;
+      const rect = codexPet.getBoundingClientRect();
+      dragState = {
+        pointerId: event.pointerId,
+        startX: point.clientX,
+        startY: point.clientY,
+        left: rect.left,
+        top: rect.top,
+      };
+      didDrag = false;
+      codexPet.setPointerCapture?.(event.pointerId);
+      codexPet.classList.add("dragging");
+      codexPet.style.setProperty("--pet-nudge-x", "0px");
+      codexPet.style.setProperty("--pet-nudge-y", "0px");
+      setMood({ name: "drag", text: "拖我去你喜欢的位置。" });
+      event.preventDefault();
+    }
+
+    function moveDrag(event) {
+      if (!dragState) return;
+      if (event.pointerId !== undefined && dragState.pointerId !== undefined && event.pointerId !== dragState.pointerId) return;
+      const point = event.touches ? event.touches[0] : event;
+      if (!point) return;
+      const dx = point.clientX - dragState.startX;
+      const dy = point.clientY - dragState.startY;
+      if (Math.hypot(dx, dy) > 4) didDrag = true;
+      placePet(dragState.left + dx, dragState.top + dy);
+      event.preventDefault();
+    }
+
+    function endDrag(event) {
+      if (!dragState) return;
+      if (event?.pointerId !== undefined && dragState.pointerId !== undefined && event.pointerId !== dragState.pointerId) return;
+      codexPet.releasePointerCapture?.(dragState.pointerId);
+      codexPet.classList.remove("dragging");
+      dragState = null;
+      if (didDrag) {
+        dragEndAt = Date.now();
+        setMood({ name: "settled", text: "安家成功。" });
+      }
     }
 
     codexPet.addEventListener("mouseenter", () => {
@@ -279,54 +327,21 @@
       codexPet.style.setProperty("--pet-nudge-y", "0px");
     });
 
-    codexPet.addEventListener("pointerdown", (event) => {
-      if (event.button !== undefined && event.button !== 0) return;
-      const rect = codexPet.getBoundingClientRect();
-      dragState = {
-        pointerId: event.pointerId,
-        startX: event.clientX,
-        startY: event.clientY,
-        left: rect.left,
-        top: rect.top,
-      };
-      didDrag = false;
-      codexPet.setPointerCapture?.(event.pointerId);
-      codexPet.classList.add("dragging");
-      codexPet.style.setProperty("--pet-nudge-x", "0px");
-      codexPet.style.setProperty("--pet-nudge-y", "0px");
-      setMood({ name: "drag", text: "拖我去你喜欢的位置。" });
-    });
+    codexPet.addEventListener("pointerdown", beginDrag);
+    codexPet.addEventListener("mousedown", beginDrag);
+    codexPet.addEventListener("touchstart", beginDrag, { passive: false });
 
-    codexPet.addEventListener("pointermove", (event) => {
-      if (!dragState || event.pointerId !== dragState.pointerId) return;
-      const dx = event.clientX - dragState.startX;
-      const dy = event.clientY - dragState.startY;
-      if (Math.hypot(dx, dy) > 4) didDrag = true;
-      placePet(dragState.left + dx, dragState.top + dy);
-      event.preventDefault();
-    });
-
-    codexPet.addEventListener("pointerup", (event) => {
-      if (!dragState || event.pointerId !== dragState.pointerId) return;
-      codexPet.releasePointerCapture?.(event.pointerId);
-      codexPet.classList.remove("dragging");
-      dragState = null;
-      if (didDrag) {
-        setMood({ name: "settled", text: "安家成功。" });
-        window.setTimeout(() => {
-          didDrag = false;
-        }, 0);
-      }
-    });
-
-    codexPet.addEventListener("pointercancel", () => {
-      dragState = null;
-      didDrag = false;
-      codexPet.classList.remove("dragging");
-    });
+    document.addEventListener("pointermove", moveDrag);
+    document.addEventListener("mousemove", moveDrag);
+    document.addEventListener("touchmove", moveDrag, { passive: false });
+    document.addEventListener("pointerup", endDrag);
+    document.addEventListener("mouseup", endDrag);
+    document.addEventListener("touchend", endDrag);
+    document.addEventListener("pointercancel", endDrag);
+    document.addEventListener("touchcancel", endDrag);
 
     codexPet.addEventListener("click", (event) => {
-      if (didDrag) {
+      if (Date.now() - dragEndAt < 350) {
         event.preventDefault();
         didDrag = false;
         return;
@@ -364,6 +379,15 @@
       const rect = codexPet.getBoundingClientRect();
       placePet(rect.left, rect.top);
     });
+
+    try {
+      const saved = JSON.parse(localStorage.getItem("codex-pet-position") || "null");
+      if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) {
+        placePet(saved.left, saved.top);
+      }
+    } catch {
+      localStorage.removeItem("codex-pet-position");
+    }
 
     updateBubbleSide();
   }
