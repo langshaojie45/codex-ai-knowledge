@@ -2,7 +2,9 @@
   const data = window.KNOWLEDGE_DATA;
   const articleGrid = document.querySelector("#articleGrid");
   const tabs = document.querySelector("#categoryTabs");
+  const progressTabs = document.querySelector("#progressTabs");
   const searchInput = document.querySelector("#searchInput");
+  const libraryStats = document.querySelector("#libraryStats");
   const heroSearch = document.querySelector("#heroSearch");
   const heroSearchInput = document.querySelector("#heroSearchInput");
   const roleGrid = document.querySelector("#roleGrid");
@@ -30,8 +32,11 @@
   const drawerMeta = document.querySelector("#drawerMeta");
   const drawerBody = document.querySelector("#drawerBody");
   const drawerSource = document.querySelector("#drawerSource");
+  const drawerMarkRead = document.querySelector("#drawerMarkRead");
+  const drawerSaveArticle = document.querySelector("#drawerSaveArticle");
   const drawerCopyLink = document.querySelector("#drawerCopyLink");
   let currentCategory = "全部";
+  let currentProgress = "全部";
   let setupStep = 0;
   let currentArticle = null;
   const setupAnswers = {
@@ -40,6 +45,48 @@
     network: "ok",
     goal: "cli",
   };
+  const progressFilters = ["全部", "未读", "已读", "收藏"];
+  const articleState = loadArticleState();
+
+  function loadArticleState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem("knowledge-article-state") || "null");
+      return {
+        read: saved && typeof saved.read === "object" ? saved.read : {},
+        saved: saved && typeof saved.saved === "object" ? saved.saved : {},
+      };
+    } catch {
+      localStorage.removeItem("knowledge-article-state");
+      return { read: {}, saved: {} };
+    }
+  }
+
+  function saveArticleState() {
+    localStorage.setItem("knowledge-article-state", JSON.stringify(articleState));
+  }
+
+  function isArticleRead(slug) {
+    return Boolean(articleState.read[slug]);
+  }
+
+  function isArticleSaved(slug) {
+    return Boolean(articleState.saved[slug]);
+  }
+
+  function setArticleFlag(slug, key, value) {
+    if (value) {
+      articleState[key][slug] = Date.now();
+    } else {
+      delete articleState[key][slug];
+    }
+    saveArticleState();
+    renderProgressTabs();
+    renderArticles();
+    renderLibraryStats();
+    if (currentArticle?.slug === slug) {
+      updateDrawerState();
+    }
+  }
 
   function escapeHtml(value) {
     return String(value)
@@ -401,12 +448,47 @@
       .join("");
   }
 
+  function renderProgressTabs() {
+    if (!progressTabs) return;
+    progressTabs.innerHTML = progressFilters
+      .map(
+        (filter) =>
+          `<button class="${filter === currentProgress ? "active" : ""}" data-progress-filter="${filter}">${filter}</button>`,
+      )
+      .join("");
+  }
+
+  function renderLibraryStats() {
+    if (!libraryStats) return;
+    const total = data.articles.length;
+    const readCount = data.articles.filter((article) => isArticleRead(article.slug)).length;
+    const savedCount = data.articles.filter((article) => isArticleSaved(article.slug)).length;
+    const percent = total ? Math.round((readCount / total) * 100) : 0;
+    libraryStats.innerHTML = `
+      <span><strong>${readCount}</strong> / ${total} 已读</span>
+      <span><strong>${savedCount}</strong> 篇收藏</span>
+      <span><strong>${percent}%</strong> 完成度</span>
+    `;
+  }
+
+  function initNavState() {
+    const page = document.body.dataset.page;
+    document.querySelectorAll("[data-nav-page]").forEach((link) => {
+      link.classList.toggle("active", link.dataset.navPage === page);
+    });
+  }
+
   function renderArticles() {
     const keyword = searchInput.value.trim().toLowerCase();
     const articles = data.articles.filter((article) => {
       const matchesCategory = currentCategory === "全部" || article.category === currentCategory;
       const haystack = `${article.title} ${article.category} ${article.summary} ${(article.highlights || []).join(" ")}`.toLowerCase();
-      return matchesCategory && (!keyword || haystack.includes(keyword));
+      const matchesProgress =
+        currentProgress === "全部" ||
+        (currentProgress === "未读" && !isArticleRead(article.slug)) ||
+        (currentProgress === "已读" && isArticleRead(article.slug)) ||
+        (currentProgress === "收藏" && isArticleSaved(article.slug));
+      return matchesCategory && matchesProgress && (!keyword || haystack.includes(keyword));
     });
 
     if (!articles.length) {
@@ -423,6 +505,10 @@
               <strong>${article.title}</strong>
               <span>${article.summary}</span>
             </span>
+            <span class="content-card-state">
+              <span class="state-pill ${isArticleRead(article.slug) ? "done" : ""}">${isArticleRead(article.slug) ? "已读" : "未读"}</span>
+              ${isArticleSaved(article.slug) ? '<span class="state-pill saved">已收藏</span>' : ""}
+            </span>
             <span class="content-card-footer">
               <span>${article.level}</span>
               <span>${article.meta}</span>
@@ -438,6 +524,13 @@
     articleDrawer.classList.remove("open");
     articleDrawer.setAttribute("aria-hidden", "true");
     document.body.classList.remove("drawer-open");
+  }
+
+  function updateDrawerState() {
+    if (!currentArticle) return;
+    drawerMarkRead.textContent = isArticleRead(currentArticle.slug) ? "设为未读" : "标记已读";
+    drawerSaveArticle.textContent = isArticleSaved(currentArticle.slug) ? "取消收藏" : "收藏";
+    drawerSaveArticle.classList.toggle("active", isArticleSaved(currentArticle.slug));
   }
 
   function openArticle(slug) {
@@ -472,6 +565,7 @@
       </section>
     `;
     drawerSource.href = article.source;
+    updateDrawerState();
     articleDrawer.classList.add("open");
     articleDrawer.setAttribute("aria-hidden", "false");
     document.body.classList.add("drawer-open");
@@ -622,6 +716,13 @@
       renderArticles();
     }
 
+    const progressButton = event.target.closest("[data-progress-filter]");
+    if (progressButton) {
+      currentProgress = progressButton.dataset.progressFilter;
+      renderProgressTabs();
+      renderArticles();
+    }
+
     const articleButton = event.target.closest("[data-article-slug]");
     if (articleButton) {
       openArticle(articleButton.dataset.articleSlug);
@@ -663,6 +764,16 @@
     }, 1200);
   });
 
+  drawerMarkRead?.addEventListener("click", () => {
+    if (!currentArticle) return;
+    setArticleFlag(currentArticle.slug, "read", !isArticleRead(currentArticle.slug));
+  });
+
+  drawerSaveArticle?.addEventListener("click", () => {
+    if (!currentArticle) return;
+    setArticleFlag(currentArticle.slug, "saved", !isArticleSaved(currentArticle.slug));
+  });
+
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeArticle();
@@ -683,7 +794,9 @@
     event.preventDefault();
     searchInput.value = heroSearchInput.value;
     currentCategory = "全部";
+    currentProgress = "全部";
     renderTabs();
+    renderProgressTabs();
     renderArticles();
     document.querySelector("#content").scrollIntoView({ behavior: "smooth", block: "start" });
   });
@@ -698,7 +811,10 @@
   }
 
   renderTabs();
+  initNavState();
+  renderProgressTabs();
   renderArticles();
+  renderLibraryStats();
   renderRoles();
   renderSetup();
   initParticleField();
