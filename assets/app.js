@@ -9,6 +9,7 @@
   const heroSearchInput = document.querySelector("#heroSearchInput");
   const roleGrid = document.querySelector("#roleGrid");
   const themeToggle = document.querySelector("#themeToggle");
+  const navToggle = document.querySelector("#navToggle");
   const setupProgressText = document.querySelector("#setupProgressText");
   const setupProgressBar = document.querySelector("#setupProgressBar");
   const setupQuestionTitle = document.querySelector("#setupQuestionTitle");
@@ -440,6 +441,7 @@
   }
 
   function renderTabs() {
+    if (!tabs) return;
     tabs.innerHTML = data.categories
       .map(
         (category) =>
@@ -478,7 +480,32 @@
     });
   }
 
+  function initMobileNav() {
+    if (!navToggle) return;
+    navToggle.addEventListener("click", () => {
+      const open = document.body.classList.toggle("nav-open");
+      navToggle.setAttribute("aria-expanded", String(open));
+    });
+
+    document.querySelectorAll(".nav a").forEach((link) => {
+      link.addEventListener("click", () => {
+        document.body.classList.remove("nav-open");
+        navToggle.setAttribute("aria-expanded", "false");
+      });
+    });
+  }
+
+  function applyInitialSearch() {
+    if (!searchInput) return;
+    const params = new URLSearchParams(window.location.search);
+    const keyword = params.get("search");
+    if (keyword) {
+      searchInput.value = keyword;
+    }
+  }
+
   function renderArticles() {
+    if (!articleGrid || !searchInput) return;
     const keyword = searchInput.value.trim().toLowerCase();
     const articles = data.articles.filter((article) => {
       const matchesCategory = currentCategory === "全部" || article.category === currentCategory;
@@ -527,7 +554,7 @@
   }
 
   function updateDrawerState() {
-    if (!currentArticle) return;
+    if (!currentArticle || !drawerMarkRead || !drawerSaveArticle) return;
     drawerMarkRead.textContent = isArticleRead(currentArticle.slug) ? "设为未读" : "标记已读";
     drawerSaveArticle.textContent = isArticleSaved(currentArticle.slug) ? "取消收藏" : "收藏";
     drawerSaveArticle.classList.toggle("active", isArticleSaved(currentArticle.slug));
@@ -535,7 +562,7 @@
 
   function openArticle(slug) {
     const article = data.articles.find((item) => item.slug === slug);
-    if (!article || !articleDrawer) return;
+    if (!article || !articleDrawer || !drawerCategory || !drawerTitle || !drawerSummary || !drawerMeta || !drawerBody) return;
     currentArticle = article;
     drawerCategory.textContent = article.category;
     drawerTitle.textContent = article.title;
@@ -573,6 +600,7 @@
   }
 
   function renderRoles() {
+    if (!roleGrid) return;
     roleGrid.innerHTML = data.roles
       .map(
         (role) => `
@@ -788,20 +816,25 @@
     }
   });
 
-  searchInput.addEventListener("input", renderArticles);
+  searchInput?.addEventListener("input", renderArticles);
 
-  heroSearch.addEventListener("submit", (event) => {
+  heroSearch?.addEventListener("submit", (event) => {
     event.preventDefault();
-    searchInput.value = heroSearchInput.value;
+    const keyword = heroSearchInput?.value.trim() || "";
+    if (!searchInput) {
+      window.location.href = keyword ? `./content.html?search=${encodeURIComponent(keyword)}` : "./content.html";
+      return;
+    }
+    searchInput.value = keyword;
     currentCategory = "全部";
     currentProgress = "全部";
     renderTabs();
     renderProgressTabs();
     renderArticles();
-    document.querySelector("#content").scrollIntoView({ behavior: "smooth", block: "start" });
+    document.querySelector("#content")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  themeToggle.addEventListener("click", () => {
+  themeToggle?.addEventListener("click", () => {
     document.documentElement.classList.toggle("dark");
     localStorage.setItem("knowledge-theme", document.documentElement.classList.contains("dark") ? "dark" : "light");
   });
@@ -810,8 +843,10 @@
     document.documentElement.classList.add("dark");
   }
 
+  applyInitialSearch();
   renderTabs();
   initNavState();
+  initMobileNav();
   renderProgressTabs();
   renderArticles();
   renderLibraryStats();

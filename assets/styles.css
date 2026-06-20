@@ -105,6 +105,26 @@ input {
   color: var(--muted);
 }
 
+.nav-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  place-items: center;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
 .nav a:hover {
   color: var(--text);
 }
@@ -1043,22 +1063,6 @@ code {
   margin-bottom: 22px;
 }
 
-body[data-page]:not([data-page="home"]) main > * {
-  display: none;
-}
-
-body[data-page="starter"] #starter,
-body[data-page="content"] #content,
-body[data-page="users"] #users,
-body[data-page="roadmap"] #roadmap {
-  display: block;
-}
-
-body[data-page="guide"] #guide,
-body[data-page="roadmap"] #architecture {
-  display: grid;
-}
-
 .toolbar input {
   flex: 1 1 260px;
   min-height: 44px;
@@ -1687,11 +1691,31 @@ body[data-page="roadmap"] #architecture {
     flex-wrap: wrap;
   }
 
+  .nav-toggle {
+    display: grid;
+    gap: 4px;
+    margin-left: auto;
+  }
+
   .nav {
     order: 3;
     width: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
     overflow-x: auto;
     padding-bottom: 4px;
+  }
+
+  .nav-open .nav {
+    display: flex;
+  }
+
+  .nav a {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
   }
 
   .hero {
